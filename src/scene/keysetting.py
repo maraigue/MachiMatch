@@ -24,30 +24,31 @@ import sys # for debug
 
 class KeySettingScene(Scene):
     BACKGROUND = (255,255,255)
-    CURSOR_BORDER = 10 # ƒJ[ƒ\ƒ‹‚ğ•\‚·‰æ‘œ‚ªA‘I‘ğˆ‚ğ•\‚·‰æ‘œ‚©‚ç‚Ç‚ê‚¾‚¯‚¸‚ç‚µ‚Ä”z’u‚³‚ê‚é‚©
+    CURSOR_BORDER = 10 # ã‚«ãƒ¼ã‚½ãƒ«ã‚’è¡¨ã™ç”»åƒãŒã€é¸æŠè‚¢ã‚’è¡¨ã™ç”»åƒã‹ã‚‰ã©ã‚Œã ã‘ãšã‚‰ã—ã¦é…ç½®ã•ã‚Œã‚‹ã‹
     IMAGE_PATH = "../resources/image/menu"
-    KEY_REPEAT_TIME = 0.2 # ‰½•bˆÈ“à‚ÌŠÔ‚È‚çAƒL[‚ª‰Ÿ‚³‚ê‘±‚¯‚Ä‚¢‚Ä‚à˜A‘Å‚Æ‚İ‚È‚³‚È‚¢‚©
+    KEY_REPEAT_TIME = 0.2 # ä½•ç§’ä»¥å†…ã®é–“ãªã‚‰ã€ã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œç¶šã‘ã¦ã„ã¦ã‚‚é€£æ‰“ã¨ã¿ãªã•ãªã„ã‹
+    setting = None # ä¿å­˜ã•ã‚ŒãŸã‚­ãƒ¼è¨­å®š
     
     def ready(self, *args, **kwargs):
         super(KeySettingScene, self).ready()
         
         self.joypads = JoyPad().sticks
         
-        # ‚Ç‚ÌƒvƒŒƒCƒ„[‚ª‰½‚ÌƒL[‚Ìİ’è‚ğ‚µ‚Ä‚¢‚é‚©B
-        # 0: •ûŒüƒL[‚ğ“ü—Íi‚Ç‚ÌƒQ[ƒ€ƒpƒbƒh‚ğ‰½ƒvƒŒƒCƒ„[‚ªg‚¤‚©Šm‚©‚ß‚é‚½‚ßj
-        # 1: ‰E‰ñ“]‚Ég‚¤ƒL[
-        # 2: ¶‰ñ“]‚Ég‚¤ƒL[
-        # 3: ƒpƒlƒ‹‚ğ’u‚­‚Ì‚Ég‚¤ƒL[
-        # 4: Š®—¹
+        # ã©ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒä½•ã®ã‚­ãƒ¼ã®è¨­å®šã‚’ã—ã¦ã„ã‚‹ã‹ã€‚
+        # 0: æ–¹å‘ã‚­ãƒ¼ã‚’å…¥åŠ›ï¼ˆã©ã®ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã‚’ä½•ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒä½¿ã†ã‹ç¢ºã‹ã‚ã‚‹ãŸã‚ï¼‰
+        # 1: å³å›è»¢ã«ä½¿ã†ã‚­ãƒ¼
+        # 2: å·¦å›è»¢ã«ä½¿ã†ã‚­ãƒ¼
+        # 3: ãƒ‘ãƒãƒ«ã‚’ç½®ãã®ã«ä½¿ã†ã‚­ãƒ¼
+        # 4: å®Œäº†
         self.phase = [0, 0, 0, 0]
         
-        # ‚Ç‚ÌƒvƒŒƒCƒ„[‚ª‚Ç‚ÌƒQ[ƒ€ƒpƒbƒh‚ğg‚Á‚Ä‚¢‚é‚©B
-        # iself.joypads‚Ì‰½”Ô–Ú‚ÌƒQ[ƒ€ƒpƒbƒh‚ğg‚Á‚Ä‚¢‚é‚©‚Åw’è‚·‚éj
-        # ‚½‚¾‚µAƒL[ƒ{[ƒh‚Å‘€ì‚·‚éƒvƒŒƒCƒ„[‚É‚Â‚¢‚Ä‚Í-1A
-        # İ’è‚ªŠ®—¹‚µ‚Ä‚¢‚È‚¢ƒvƒŒƒCƒ„[‚É‚Â‚¢‚Ä‚ÍNone‚ğw’è‚·‚éB
+        # ã©ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã©ã®ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã‚’ä½¿ã£ã¦ã„ã‚‹ã‹ã€‚
+        # ï¼ˆself.joypadsã®ä½•ç•ªç›®ã®ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ã‚’ä½¿ã£ã¦ã„ã‚‹ã‹ã§æŒ‡å®šã™ã‚‹ï¼‰
+        # ãŸã ã—ã€ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã§æ“ä½œã™ã‚‹ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«ã¤ã„ã¦ã¯-1ã€
+        # è¨­å®šãŒå®Œäº†ã—ã¦ã„ãªã„ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«ã¤ã„ã¦ã¯Noneã‚’æŒ‡å®šã™ã‚‹ã€‚
         self.player2joypad = [None, None, None, None]
         
-        # •K—v‚È‰æ‘œ‚ğ“Ç‚İ‚Ş
+        # å¿…è¦ãªç”»åƒã‚’èª­ã¿è¾¼ã‚€
         self.instruction = [{}, {}, {}, {}]
         self.instruction_message = [[], [], [], []]
         for i in range(4):
@@ -88,8 +89,8 @@ class KeySettingScene(Scene):
             self.instruction[i]["message"].x = 40
             self.instruction[i]["message"].y = y_pos_icons + 60
         
-        # ’F‚±‚Ì‰æ‘œ‚Íİ’è‰æ–Ê‚Ìˆê”Ô‰º‚É•\¦‚³‚ê‚é‚à‚Ì‚Å‚ ‚éB
-        # ‚±‚Ì“_‚Åi‚¨‚æ‚Ñy_pos_icons‚Ì’l‚ÍAÅŒã‚Ìi‚Ì’l‚É‚È‚Á‚Ä‚¢‚é‚±‚Æ‚É’ˆÓB
+        # æ³¨ï¼šã“ã®ç”»åƒã¯è¨­å®šç”»é¢ã®ä¸€ç•ªä¸‹ã«è¡¨ç¤ºã•ã‚Œã‚‹ã‚‚ã®ã§ã‚ã‚‹ã€‚
+        # ã“ã®æ™‚ç‚¹ã§iãŠã‚ˆã³y_pos_iconsã®å€¤ã¯ã€æœ€å¾Œã®iã®å€¤ã«ãªã£ã¦ã„ã‚‹ã“ã¨ã«æ³¨æ„ã€‚
         self.instruction[i]["instruction_note"] = Image(os.path.join(self.IMAGE_PATH, "instruction-menu.png"), alpha=False)
         self.instruction[i]["instruction_note"].x = 40
         self.instruction[i]["instruction_note"].y = y_pos_icons + 120
@@ -101,21 +102,21 @@ class KeySettingScene(Scene):
         self.last_press_key = []
         for dummy in self.joypads:
             self.last_press_key.append({})
-        # last_press_key: ŠeƒvƒŒƒCƒ„[‚ªA‚¢‚ÂÅŒã‚ÉƒL[‚ğ‰Ÿ‚µ‚½‚©
-        # - X: ®”
-        # - Y: ƒL[‚Ì–¼‘OiƒL[ƒ{[ƒh‚É‘Î‚·‚é–¼‘O‚ğ“]—pBK_RIGHT‚Æ‚©K_x‚Æ‚©j
-        # * ƒvƒŒƒCƒ„[X‚ªƒL[Y‚ğ‰Ÿ‚µ‚½ê‡A
-        #   last_press_key[X][Y] = time.time() ‚Æ‚·‚éB
-        # * ƒvƒŒƒCƒ„[X‚ªƒL[‚ğ—£‚µ‚½ê‡A
-        #   last_press_key[X].pop(Y) ‚Æ‚·‚éB
-        # * ƒvƒŒƒCƒ„[X‚ªƒL[Y‚ğ‰Ÿ‚µ‚Ä‚¢‚é‚©‚ÍA
-        #   Y in last_press_key[X] ‚Å’²‚×‚ç‚ê‚éB
+        # last_press_key: å„ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã€ã„ã¤æœ€å¾Œã«ã‚­ãƒ¼ã‚’æŠ¼ã—ãŸã‹
+        # - X: æ•´æ•°
+        # - Y: ã‚­ãƒ¼ã®åå‰ï¼ˆã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã«å¯¾ã™ã‚‹åå‰ã‚’è»¢ç”¨ã€‚K_RIGHTã¨ã‹K_xã¨ã‹ï¼‰
+        # * ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼XãŒã‚­ãƒ¼Yã‚’æŠ¼ã—ãŸå ´åˆã€
+        #   last_press_key[X][Y] = time.time() ã¨ã™ã‚‹ã€‚
+        # * ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼XãŒã‚­ãƒ¼ã‚’é›¢ã—ãŸå ´åˆã€
+        #   last_press_key[X].pop(Y) ã¨ã™ã‚‹ã€‚
+        # * ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼XãŒã‚­ãƒ¼Yã‚’æŠ¼ã—ã¦ã„ã‚‹ã‹ã¯ã€
+        #   Y in last_press_key[X] ã§èª¿ã¹ã‚‰ã‚Œã‚‹ã€‚
     
     def update(self):
-        # Joypad‚É‚æ‚éƒJ[ƒ\ƒ‹‘€ì
-        # ŠeJoypad‚É‚Â‚¢‚Ä“®‚«‚ğƒ`ƒFƒbƒN‚·‚é
+        # Joypadã«ã‚ˆã‚‹ã‚«ãƒ¼ã‚½ãƒ«æ“ä½œ
+        # å„Joypadã«ã¤ã„ã¦å‹•ãã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
         for joypad_id in range(len(self.joypads)):
-            # ’¼‹ß‚ÌƒL[‘€ì‚©‚ç
+            # ç›´è¿‘ã®ã‚­ãƒ¼æ“ä½œã‹ã‚‰
             xaxis = self.joypads[joypad_id].get_axis(0)
             yaxis = self.joypads[joypad_id].get_axis(1)
             time_now = time.time()
@@ -134,12 +135,10 @@ class KeySettingScene(Scene):
             else:
                 pass
         
-        # ƒL[ƒ{[ƒh‚É‚æ‚éƒJ[ƒ\ƒ‹‘€ì
-        if Key.is_press(K_RIGHT):
-            pass
-        elif Key.is_press(K_LEFT):
-            pass
-        elif Key.is_press(K_DOWN):
-            pass
-        elif Key.is_press(K_UP):
-            pass
+        # ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã«ã‚ˆã‚‹ã‚«ãƒ¼ã‚½ãƒ«æ“ä½œ
+        if Key.is_press(K_RETURN):
+            # è¨­å®šã‚’åæ˜ ã—ã¦æˆ»ã‚‹
+            Game.get_scene_manager().change_scene('mainmenu')
+        elif Key.is_press(K_BACKSPACE):
+            # è¨­å®šã‚’ç ´æ£„ã—ã¦æˆ»ã‚‹
+            Game.get_scene_manager().change_scene('mainmenu')

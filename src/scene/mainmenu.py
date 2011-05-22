@@ -18,17 +18,17 @@ from pywaz.sprite.button import Button
 from pywaz.device.joypad import JoyPad
 from pywaz.device.key import Key
 
+from keysuppressor import KeySuppressor
 import os.path
-import time
 import sys # for debug
 
 class MainMenuScene(Scene):
     BACKGROUND = (255,255,255)
-    CURSOR_BORDER = 10 # ƒJ[ƒ\ƒ‹‚ğ•\‚·‰æ‘œ‚ªA‘I‘ğˆ‚ğ•\‚·‰æ‘œ‚©‚ç‚Ç‚ê‚¾‚¯‚¸‚ç‚µ‚Ä”z’u‚³‚ê‚é‚©
+    CURSOR_BORDER = 10 # ã‚«ãƒ¼ã‚½ãƒ«ã‚’è¡¨ã™ç”»åƒãŒã€é¸æŠè‚¢ã‚’è¡¨ã™ç”»åƒã‹ã‚‰ã©ã‚Œã ã‘ãšã‚‰ã—ã¦é…ç½®ã•ã‚Œã‚‹ã‹
     IMAGE_PATH = "../resources/image/menu"
-    KEY_REPEAT_TIME = 0.2 # ‰½•bˆÈ“à‚ÌŠÔ‚È‚çAƒL[‚ª‰Ÿ‚³‚ê‘±‚¯‚Ä‚¢‚Ä‚à˜A‘Å‚Æ‚İ‚È‚³‚È‚¢‚©
+    KEY_REPEAT_TIME = 0.2 # ä½•ç§’ä»¥å†…ã®é–“ãªã‚‰ã€ã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œç¶šã‘ã¦ã„ã¦ã‚‚é€£æ‰“ã¨ã¿ãªã•ãªã„ã‹
     
-    # 2Players, 3Players, 4Players‚Ì‰æ‘œ‚ğ“Ç‚İ‚Ş
+    # 2Players, 3Players, 4Playersã®ç”»åƒã‚’èª­ã¿è¾¼ã‚€
     def load_player_selection(self, joypad_number):
         fail = ("" if joypad_number >= 2 else "x")
         self.player2 = Image(os.path.join(self.IMAGE_PATH, "player2%s.png" % fail), alpha=False)
@@ -39,43 +39,36 @@ class MainMenuScene(Scene):
         fail = ("" if joypad_number >= 4 else "x")
         self.player4 = Image(os.path.join(self.IMAGE_PATH, "player4%s.png" % fail), alpha=False)
     
-    # ƒJ[ƒ\ƒ‹‚ğx•ûŒü‚Édir_xAy•ûŒü‚Édir_y‚¾‚¯“®‚©‚·
+    # ã‚«ãƒ¼ã‚½ãƒ«ã‚’xæ–¹å‘ã«dir_xã€yæ–¹å‘ã«dir_yã ã‘å‹•ã‹ã™
     def set_cursor_pos(self, dir_x, dir_y):
         target_option = False
+        sys.stderr.write("(%d,%d)" % (self.cursor_logical_x, self.cursor_logical_y))
         while not target_option:
-            # y•ûŒü
-            self.cursor_logical_y += dir_y
-            if self.cursor_logical_y < 0:
-                self.cursor_logical_y += len(self.options)
-            if self.cursor_logical_y >= len(self.options):
-                self.cursor_logical_y -= len(self.options)
-            
-            # x•ûŒü
-            self.cursor_logical_x += dir_x
-            if self.cursor_logical_x < 0:
-                self.cursor_logical_x += len(self.options[self.cursor_logical_y])
-            if self.cursor_logical_x >= len(self.options[self.cursor_logical_y]):
-                self.cursor_logical_x -= len(self.options[self.cursor_logical_y])
-            
-            # •`‰æˆÊ’u‚ÌŒvZ
-            target_option = self.options[self.cursor_logical_y][self.cursor_logical_x]
-            # ‚±‚±‚ÅAw’è‚µ‚½ˆÊ’u‚É‘I‘ğˆ‚ª‚È‚©‚Á‚½ê‡A
-            # ‚à‚¤ˆê“xƒJ[ƒ\ƒ‹‚ÌˆÚ“®‚ğ“K—p‚·‚éB—á‚¦‚Î
+            # yæ–¹å‘
+            self.cursor_logical_y = (self.cursor_logical_y + dir_y) % len(self.menu_options)
+            # xæ–¹å‘
+            self.cursor_logical_x = (self.cursor_logical_x + dir_x) % len(self.menu_options[self.cursor_logical_y])
+            sys.stderr.write("->(%d,%d)" % (self.cursor_logical_x, self.cursor_logical_y))
+            # æç”»ä½ç½®ã®è¨ˆç®—
+            target_option = self.menu_options[self.cursor_logical_y][self.cursor_logical_x]
+            # ã“ã“ã§ã€æŒ‡å®šã—ãŸä½ç½®ã«é¸æŠè‚¢ãŒãªã‹ã£ãŸå ´åˆã€
+            # ã‚‚ã†ä¸€åº¦ã‚«ãƒ¼ã‚½ãƒ«ã®ç§»å‹•ã‚’é©ç”¨ã™ã‚‹ã€‚ä¾‹ãˆã°
             # [Option1] [Option2] [Option3]
             # [Option4]           [Option6]
-            # ‚Æ‚¢‚¤•À‚Ñ‚ÅA[Option4]‚ÉƒJ[ƒ\ƒ‹‚ª‚ ‚éó‘Ô‚Å‰EƒL[‚ğ
-            # ‰Ÿ‚µ‚½‚Æ‚·‚éB‚±‚Ì‚Æ‚«AƒJ[ƒ\ƒ‹‚Íˆê“x[Option4]‚Æ[Option6]‚Ì
-            # ŠÔ‚És‚±‚¤‚Æ‚·‚é‚ªA‚»‚ê‚ª–³Œø‚Æ”»’f‚³‚êA‚à‚¤ˆê“x
-            # ƒJ[ƒ\ƒ‹‚ª‰E‚É“®‚­iŒ‹‰ÊA[Option6]‚ÅƒJ[ƒ\ƒ‹‚ª~‚Ü‚éjB
+            # ã¨ã„ã†ä¸¦ã³ã§ã€[Option4]ã«ã‚«ãƒ¼ã‚½ãƒ«ãŒã‚ã‚‹çŠ¶æ…‹ã§å³ã‚­ãƒ¼ã‚’
+            # æŠ¼ã—ãŸã¨ã™ã‚‹ã€‚ã“ã®ã¨ãã€ã‚«ãƒ¼ã‚½ãƒ«ã¯ä¸€åº¦[Option4]ã¨[Option6]ã®
+            # é–“ã«è¡Œã“ã†ã¨ã™ã‚‹ãŒã€ãã‚ŒãŒç„¡åŠ¹ã¨åˆ¤æ–­ã•ã‚Œã€ã‚‚ã†ä¸€åº¦
+            # ã‚«ãƒ¼ã‚½ãƒ«ãŒå³ã«å‹•ãï¼ˆçµæœã€[Option6]ã§ã‚«ãƒ¼ã‚½ãƒ«ãŒæ­¢ã¾ã‚‹ï¼‰ã€‚
         
-        # w’è‚µ‚½ˆÊ’u‚É‘I‘ğˆ‚ª‚ ‚Á‚½ê‡‚ÉA‚Í‚¶‚ß‚Äwhileƒ‹[ƒv‚ğ”²‚¯‚éB
-        # ‚±‚±‚ÅƒJ[ƒ\ƒ‹‚Ì•`‰æˆÊ’u‚ğŒvZB
+        sys.stderr.write("\n")
+        # æŒ‡å®šã—ãŸä½ç½®ã«é¸æŠè‚¢ãŒã‚ã£ãŸå ´åˆã«ã€ã¯ã˜ã‚ã¦whileãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã‚‹ã€‚
+        # ã“ã“ã§ã‚«ãƒ¼ã‚½ãƒ«ã®æç”»ä½ç½®ã‚’è¨ˆç®—ã€‚
         self.cursor.x = target_option.x - self.CURSOR_BORDER
         self.cursor.y = target_option.y - self.CURSOR_BORDER
     
-    # ƒQ[ƒ€‚ğn‚ß‚é
+    # ã‚²ãƒ¼ãƒ ã‚’å§‹ã‚ã‚‹
     def start_game(self, player_number):
-        # TODO: ‚±‚±‚ÉAƒQ[ƒ€‰æ–Ê‚ÖˆÚ“®‚·‚éƒR[ƒh‚ğ‘‚­
+        # TODO: ã“ã“ã«ã€ã‚²ãƒ¼ãƒ ç”»é¢ã¸ç§»å‹•ã™ã‚‹ã‚³ãƒ¼ãƒ‰ã‚’æ›¸ã
         pass
     
     def ready(self, *args, **kwargs):
@@ -95,17 +88,18 @@ class MainMenuScene(Scene):
         self.player4.x = 600; self.player4.y = 400
         self.config.x  = 380; self.config.y  = 460
         self.exit.x    = 600; self.exit.y    = 460
-        # ƒJ[ƒ\ƒ‹ˆÊ’u‚ğ‰Šú‰»
-        self.options = ((self.player2, self.player3, self.player4),
-                        (None, self.config, self.exit))
-        self.actions = ((lambda:self.start_game(2), # self.player2
-                         lambda:self.start_game(3), # self.player3
-                         lambda:self.start_game(4),)# self.player4
-                       ,
-                        (lambda:0, # None
-                         lambda:Game.get_scene_manager().change_scene('keysetting'), #self.config
-                         lambda:sys.exit()) # self.exit
-                       )
+        # ã‚«ãƒ¼ã‚½ãƒ«ä½ç½®ã‚’åˆæœŸåŒ–
+        self.menu_options = ((self.player2, self.player3, self.player4),
+                             (None, self.config, self.exit))
+        self.menu_actions = (
+            (lambda:self.start_game(2), # self.player2
+             lambda:self.start_game(3), # self.player3
+             lambda:self.start_game(4),)# self.player4
+            ,
+            (lambda:0, # None
+             lambda:Game.get_scene_manager().change_scene('keysetting'), #self.config
+             lambda:sys.exit()) # self.exit
+            )
         self.cursor_logical_x = 0;
         self.cursor_logical_y = 0;
         self.set_cursor_pos(0, 0)
@@ -118,72 +112,45 @@ class MainMenuScene(Scene):
         self.sprites.add(self.exit)
         self.sprites.add(self.cursor)
         
-        # last_press_key: ŠeƒvƒŒƒCƒ„[‚ªA‚¢‚ÂÅŒã‚ÉƒL[‚ğ‰Ÿ‚µ‚½‚©
-        # - X: ƒQ[ƒ€ƒpƒbƒhIDiself.joypads (= JoyPad().sticks)‚Ì‰½”Ô–Ú‚ÌƒQ[ƒ€ƒpƒbƒh‚©j
-        #      ¦X == len(self.joypads) ‚Ì‚Æ‚«‚ÍAƒL[ƒ{[ƒh‚ğ•\‚·
-        # - Y: ƒL[‚Ì–¼‘O
-        # * ƒQ[ƒ€ƒpƒbƒhX‚ÌƒL[Y‚ª‰Ÿ‚³‚ê‚½ê‡A
-        #   last_press_key[X][Y] = time.time() ‚Æ‚·‚éB
-        # * ƒQ[ƒ€ƒpƒbƒhX‚ÌƒL[Y‚ª—£‚³‚ê‚½ê‡A
-        #   last_press_key[X].pop(Y) ‚Æ‚·‚éB
-        # * ƒQ[ƒ€ƒpƒbƒhX‚ÌƒL[Y‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚©‚ÍA
-        #   Y in last_press_key[X] ‚Å’²‚×‚ç‚ê‚éB
-        # * self.try_pressing_key(keyname, joypad_id) ‚ğŒÄ‚Ño‚·‚ÆA
-        #   * ÅŒã‚Ékeyname‚ÌƒL[‚ğ‰Ÿ‚µ‚Ä‚©‚çˆê’èŠÔˆÈãŒo‚Á‚Ä‚¢‚ê‚ÎA
-        #     ‚»‚ÌƒL[‚ğÅŒã‚É‰Ÿ‚µ‚½‚ğXV‚µATrue‚ğ•Ô‚·iƒL[‚ğ‰Ÿ‚¹‚½‚Æ‚İ‚È‚·jB
-        #   * ‚»‚¤‚Å‚È‚¯‚ê‚ÎFalse‚ğ•Ô‚·iƒL[‚ğ‰Ÿ‚¹‚È‚©‚Á‚½‚Æ‚İ‚È‚·jB
-        self.last_press_key = [{}]
-        for dummy in self.joypads:
-            self.last_press_key.append({})
-    
-    def try_pressing_key(self, keyname, joypad_id):
-        time_now = time.time()
-        if (keyname not in self.last_press_key[joypad_id]) or (time_now - self.last_press_key[joypad_id][keyname] >= self.KEY_REPEAT_TIME):
-            # ƒL[‚ğ‰Ÿ‚¹‚½ê‡
-            self.last_press_key[joypad_id][keyname] = time_now
-            return True
-        
-        # ƒL[‚ğ‰Ÿ‚¹‚È‚©‚Á‚½ê‡
-        return False
+        self.keysupp = KeySuppressor(self.KEY_REPEAT_TIME)
     
     def update(self):
-        # Joypad‚É‚æ‚éƒJ[ƒ\ƒ‹‘€ì
-        # ŠeJoypad‚É‚Â‚¢‚Ä“®‚«‚ğƒ`ƒFƒbƒN‚·‚é
+        # Joypadã«ã‚ˆã‚‹ã‚«ãƒ¼ã‚½ãƒ«æ“ä½œ
+        # å„Joypadã«ã¤ã„ã¦å‹•ãã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
         for joypad_id in range(len(self.joypads)):
-            # ’¼‹ß‚ÌƒL[‘€ì‚©‚ç
+            # ç›´è¿‘ã®ã‚­ãƒ¼æ“ä½œã‹ã‚‰
             xaxis = self.joypads[joypad_id].get_axis(0)
             yaxis = self.joypads[joypad_id].get_axis(1)
-            time_now = time.time()
             if xaxis > 0.9:
-                if self.try_pressing_key(K_RIGHT, joypad_id):
+                if self.keysupp.press("%d %d" % (joypad_id, K_RIGHT)):
                     self.set_cursor_pos(1, 0)
             elif xaxis < -0.9:
-                if self.try_pressing_key(K_LEFT, joypad_id):
+                if self.keysupp.press("%d %d" % (joypad_id, K_LEFT)):
                     self.set_cursor_pos(-1, 0)
             elif yaxis > 0.9:
-                if self.try_pressing_key(K_DOWN, joypad_id):
+                if self.keysupp.press("%d %d" % (joypad_id, K_DOWN)):
                     self.set_cursor_pos(0, 1)
             elif yaxis < -0.9:
-                if self.try_pressing_key(K_UP, joypad_id):
+                if self.keysupp.press("%d %d" % (joypad_id, K_UP)):
                     self.set_cursor_pos(0, -1)
             
-            # ƒ{ƒ^ƒ“
+            # ãƒœã‚¿ãƒ³
             for button_id in range(self.joypads[joypad_id].get_numbuttons()):
                 if self.joypads[joypad_id].get_button(button_id):
-                    self.actions[self.cursor_logical_y][self.cursor_logical_x]()
+                    self.menu_actions[self.cursor_logical_y][self.cursor_logical_x]()
         
-        # ƒL[ƒ{[ƒh‚É‚æ‚éƒJ[ƒ\ƒ‹‘€ì
+        # ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã«ã‚ˆã‚‹ã‚«ãƒ¼ã‚½ãƒ«æ“ä½œ
         if Key.is_press(K_RIGHT):
-            if self.try_pressing_key(K_RIGHT, len(self.joypads)):
+            if self.keysupp.press(K_RIGHT):
                 self.set_cursor_pos(1, 0)
         elif Key.is_press(K_LEFT):
-            if self.try_pressing_key(K_LEFT, len(self.joypads)):
+            if self.keysupp.press(K_LEFT):
                 self.set_cursor_pos(-1, 0)
         elif Key.is_press(K_DOWN):
-            if self.try_pressing_key(K_DOWN, len(self.joypads)):
+            if self.keysupp.press(K_DOWN):
                 self.set_cursor_pos(0, 1)
         elif Key.is_press(K_UP):
-            if self.try_pressing_key(K_UP, len(self.joypads)):
+            if self.keysupp.press(K_UP):
                 self.set_cursor_pos(0, -1)
         elif Key.is_press(K_RETURN):
-            self.actions[self.cursor_logical_y][self.cursor_logical_x]()
+            self.menu_actions[self.cursor_logical_y][self.cursor_logical_x]()

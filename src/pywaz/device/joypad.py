@@ -7,6 +7,8 @@ import pygame
 
 from pywaz.utils.singleton import Singleton
 
+import sys # for debug
+
 class JoyPad(Singleton):
     sticks = []
     

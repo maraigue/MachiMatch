@@ -5,6 +5,7 @@
 #
 import pygame
 
+from pygame.locals import *
 from pywaz.scene.abstractscene import Scene
 from pywaz.core.game import Game
 from pywaz.sprite.image import Image
@@ -13,6 +14,7 @@ from pywaz.mixer.bgm import BGM
 from pywaz.utils.vector import Vector
 from pywaz.utils.timer import Timer
 from pywaz.device.mouse import Mouse
+from pywaz.device.key import Key
 from pywaz.sprite.button import Button
 
 class LogoScene(Scene):
@@ -30,7 +32,7 @@ class LogoScene(Scene):
     def update(self):
         self.timer.tick()
         self.timer.play()
-        if self.timer.is_over() or Mouse.is_press('LEFT'):
+        if self.timer.is_over() or Mouse.is_press('LEFT') or Key.is_press(K_RETURN):
             Game.get_scene_manager().change_scene('mainmenu')
         elif self.timer.now < 60:
             self.logo.alpha = 255*self.timer.now/60
